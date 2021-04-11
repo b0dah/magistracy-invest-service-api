@@ -1,0 +1,42 @@
+[
+    {
+        "id": "binancecoin",
+        "symbol": "bnb",
+        "name": "Binance Coin"
+    },
+    {
+        "id": "bitcoin",
+        "symbol": "btc",
+        "name": "Bitcoin"
+    },
+    {
+        "id": "bitcoin-cash",
+        "symbol": "bch",
+        "name": "Bitcoin Cash"
+    },
+    {
+        "id": "eos",
+        "symbol": "eos",
+        "name": "EOS"
+    },
+    {
+        "id": "ethereum",
+        "symbol": "eth",
+        "name": "Ethereum"
+    },
+    {
+        "id": "litecoin",
+        "symbol": "ltc",
+        "name": "Litecoin"
+    },
+    {
+        "id": "ripple",
+        "symbol": "xrp",
+        "name": "XRP"
+    },
+    {
+        "id": "stellar",
+        "symbol": "xlm",
+        "name": "Stellar"
+    }
+]

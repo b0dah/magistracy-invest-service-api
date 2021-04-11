@@ -1,0 +1,221 @@
+openapi: 3.0.2
+info:
+  title: "API сервиса Erebor"
+  description: "API сервиса Erebor для составления сбалансированного портфеля инвестора на рынке криптовалют. Поддерживает создание портфеля с максимальным уровнем доходности или минимальным уровнем риска." 
+  version: 1.0.0
+servers:
+- url: /api/v1
+tags:
+- name: Coins
+- name: Portfolio
+paths:
+  /coins:
+    get:
+      tags:
+      - Coins
+      summary: "Доступные валюты и информацию о них"
+      description: "Получить список валюты которую поддерживает сервис и подробную информацию о них. Информация поступает с открытого бесплатного сервиса 'CoinGecko'."
+      operationId: controllers.coins.views.get_coins
+      responses:
+        200:
+          description: "В успешном случае приходит список валют доступных для работы и их параметры."
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Coin'
+
+                
+        
+  /portfolio/minimization:
+    get:
+      tags:
+      - Portfolio
+      summary: "Минимизация риска портфеля"
+      operationId: controllers.portfolio.views.calculate_minimization
+      description: "Минимизировать риск портфеля (из выбранных криптовалют) за указанный промежуток времени."
+      parameters:
+        - $ref: '#/components/parameters/AnalysTimeLine'
+        - $ref: '#/components/parameters/CryptoCurrencies'
+        - $ref: '#/components/parameters/Const'
+      responses:
+        200:
+          description: "Возвращает доли покупки валют в том же порядке в котором подавались в массиве."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portfolio'
+              examples:
+                First:
+                  $ref: '#/components/examples/MinimizeFirst'
+        
+  /portfolio/maximization:
+    get:
+      tags:
+      - Portfolio
+      summary: "Максимизация прибыли портфеля"
+      description: "Максимизировать прибыль портфеля (из выбранных криптовалют) за указанный промежуток времени."
+      operationId: controllers.portfolio.views.calculate_maximization
+      parameters:
+        - $ref: '#/components/parameters/AnalysTimeLine'
+        - $ref: '#/components/parameters/CryptoCurrencies'
+        - $ref: '#/components/parameters/Const'
+      responses:
+        200:
+          description: "Возвращает доли покупки валют в том же порядке в котором подавались в массиве."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portfolio'
+              examples:
+                First:
+                  $ref: '#/components/examples/MaximizeFirst'
+     
+components:
+  examples:
+    MinimizeFirst:
+      value: 
+        tools:
+          - symbol: "btc"
+            proportion: 0.6
+            profit: 0.02
+            risk: 0.03
+          - symbol: "eos"
+            proportion: 0.4
+            profit: 0.05
+            risk: 0.08
+        general_risk: 0.06
+        general_profit: 0.1
+    
+    MaximizeFirst:
+      value: 
+        tools:
+          - symbol: "btc"
+            proportion: 0.3
+            profit: 0.02
+            risk: 0.03
+          - symbol: "eos"
+            proportion: 0.7
+            profit: 0.1
+            risk: 0.12
+        general_risk: 0.08
+        general_profit: 0.15
+        
+  schemas:
+    Coin:
+      properties:
+        name:
+          type: string
+          description: "Полное название криптовалюты в сервисе 'CoinGecko'."
+          example: "Bitcoin"
+        symbol:
+          type: string
+          description: "Трехбуквенное сокращенное название криптовалюты."
+          example: "btc"
+        price:
+          type: number
+          format: float
+          description: "Цена криптовалюты в долларах"
+          example: 9772.98
+        total_volume:
+          type: integer
+          description: "Объем торгов за 24 часа на всех биржах."
+          example: 33391045493
+        market_cap:
+          type: integer
+          description: "Капитализация криптовалюты в долларах."
+          example: 179561456324
+        pr_ch_perc_7d:
+          type: number
+          format: float
+          description: "Изменение цены за последние 7 дней в прцентах."
+          example: 11.23329
+        pr_ch_perc_14d:
+          type: number
+          format: float
+          description: "Изменение цены за последние 14 дней в прцентах."
+          example: 8.54956
+        pr_ch_perc_30d:
+          type: number
+          format: float
+          description: "Изменение цены за последние 30 дней в прцентах."
+          example: 37.11626
+        pr_ch_perc_60d:
+          type: number
+          format: float
+          description: "Изменение цены за последние 60 дней в прцентах."
+          example: 57.74053
+        pr_ch_perc_200d:
+          type: number
+          format: float
+          description: "Изменение цены за последние 200 дней в прцентах."
+          example: 5.8436
+        pr_ch_perc_1y:
+          type: number
+          format: float
+          description: "Изменение цены за последний год в прцентах."
+          example: 19.63888
+        
+    Tool:
+      properties:
+        symbol:
+          type: string
+          description: "Трехбуквенное сокращенное навзание криптовалюты."
+        proportion:
+          type: number
+          format: float
+          description: "Доля в процентах показывает сколько требуется купить определенной криптовалюты в портфеле."
+        profit:
+          type: integer
+          description: "Доходность по криптовалюте за указанный период (в процентах)."
+        risk:
+          type: integer
+          description: "Риск по криптовалюте за указанный период (в процентах)."
+  
+    Portfolio:
+      properties:
+        tools:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Tool'
+          description: "Массив из криптовалют которые были выбраны, с более подробной информацией о них и их доле в портфеле."
+        general_risk:
+          type: integer
+          description: "Общий риск портфеля в выбранных криптовалютах за определенный промежуток времени (в процентах)."
+        general_profit:
+          type: integer
+          description: "Общая доходность портфеля в выбранных криптовалютах за определенный промежуток времени (в процентах)."
+
+  parameters:
+    AnalysTimeLine:
+      in: query
+      name: analys_time_line
+      schema:
+        type: integer
+      required: true
+      description: "Промежуток времени в днях за который будет происходит анализ."
+      example: 95
+
+    Const:
+      in: query
+      name: const
+      schema:
+        type: number
+        format: float
+      required: true
+      description: "Необходимый уровень."
+      example: 5
+    
+    CryptoCurrencies:
+      in: query
+      name: currencies
+      schema:
+        type: array
+        items:
+          type: string
+      required: true
+      description: "Массив из полных названий криптовалют."
+      example: 
+        - "bitcoin"
+        - "eos"
