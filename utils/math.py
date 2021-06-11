@@ -1,47 +1,45 @@
-from scipy.optimize import minimize
 import numpy as np
 import ujson
+from scipy.optimize import minimize
 
 
-def cal_min(cov, profits, targer):
+def cal_min_risk(cov_matrix, mean_profit, target_profit):
+    num_assets = len(mean_profit)
+
     def gen_risk(x):
-        return (cov.dot(x)).dot(x.T)
+        risk = np.sqrt((cov_matrix.dot(x)).dot(x.T))
+        print(f"Risk: {risk}")
+        return risk
 
-    def sum_parts(x):
-        return np.sum(x) - 1
-
-    def gen_prof(x):
-        print(f"Profit: {(x.T).dot(profits)}")
-        return ((x.T).dot(profits)*365) - targer
-    
-
-    x0 = np.array([0]*len(cov))
-    b = (0.0, 1.0)
-    bnds = (b,)*len(cov)
-    con1 = {'type': 'eq', 'fun': sum_parts}
-    con2 = {'type': 'eq', 'fun': gen_prof}
+    x0 = num_assets * [1. / num_assets, ]
+    bnds = tuple((0, 1) for asset in range(num_assets))
+    con1 = {'type': 'eq', 'fun': lambda x: np.sum(x) - 1}
+    con2 = {'type': 'eq', 'fun': lambda x: np.sum(mean_profit * x) * 365 - target_profit}
     cons = [con1, con2]
+    if target_profit == 0.0:
+        cons = [con1]
+
     sol = minimize(gen_risk, x0, method='SLSQP', bounds=bnds, constraints=cons)
     print(sol)
 
     return sol.x
 
 
-def cal_max(cov, profits, const):
+def cal_max_prof(cov_matrix, mean_profit, target_risk):
+    num_assets = len(mean_profit)
+
     def gen_prof(x):
-        return -(x.T).dot(profits)
+        return -np.sum(mean_profit * x) * 365
 
-    def gen_risk(x):
-        return (cov.dot(x)).dot(x.T) - const
+    x0 = num_assets * [1. / num_assets, ]
+    bnds = tuple((0, 1) for asset in range(num_assets))
+    con1 = {'type': 'eq', 'fun': lambda x: np.sum(x) - 1}
+    con2 = {'type': 'eq', 'fun': lambda x: np.sqrt((cov_matrix.dot(x)).dot(x.T))- target_risk}
 
-    def sum_parts(x):
-        return np.sum(x) - 1
+    cons = [con1, con2]
+    if target_risk == 0.0:
+        cons = [con1]
 
-    x0 = np.array([0]*len(cov))
-    b = (0.0, 1.0)
-    bnds = (b,)*len(cov)
-    con1 = {'type': 'eq', 'fun': sum_parts}
-    cons = [con1]
     sol = minimize(gen_prof, x0, method='SLSQP', bounds=bnds, constraints=cons)
     print(sol)
 
@@ -55,7 +53,7 @@ def get_matrix_currencies_by_days(currencies, analys_time_line):
     Return matrix profits
     """
 
-    with open('db/charts.json', 'r') as file:
+    with open('data/db/charts.json', 'r') as file:
         charts = ujson.loads(file.read())
 
     mat_profits = np.empty((0, analys_time_line), float)
@@ -63,9 +61,7 @@ def get_matrix_currencies_by_days(currencies, analys_time_line):
     for i in range(len(currencies)):
         len_cur = len(charts[currencies[i]]["profits"])
         if len_cur < analys_time_line:
-            buf = [0]*(analys_time_line - len_cur)
-            mat_profits = np.append(mat_profits, np.array(
-                [[*buf, *charts[currencies[i]]["profits"]]]), axis=0)
+            raise ValueError(f"Currency {charts[currencies[i]]} don't have enough days to analyse")
         else:
             mat_profits = np.append(mat_profits, np.array(
                 [charts[currencies[i]]["profits"][len_cur - analys_time_line:]]), axis=0)
@@ -76,5 +72,5 @@ def get_matrix_currencies_by_days(currencies, analys_time_line):
 def get_means_profit(profits):
     means = []
     for i in range(len(profits)):
-        means.append(np.mean(list(filter(lambda x: x != 0, profits[i]))))
+        means.append(np.mean(profits[i]))
     return np.array(means)
