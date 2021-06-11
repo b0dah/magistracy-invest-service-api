@@ -15,7 +15,7 @@ paths:
       - Coins
       summary: "Доступные валюты и информацию о них"
       description: "Получить список валюты которую поддерживает сервис и подробную информацию о них. Информация поступает с открытого бесплатного сервиса 'CoinGecko'."
-      operationId: controllers.coins.views.get_coins
+      operationId: src.coins.views.get_coins
       responses:
         200:
           description: "В успешном случае приходит список валют доступных для работы и их параметры."
@@ -33,7 +33,7 @@ paths:
       tags:
       - Portfolio
       summary: "Минимизация риска портфеля"
-      operationId: controllers.portfolio.views.calculate_minimization
+      operationId: src.portfolio.views.calculate_minimization
       description: "Минимизировать риск портфеля (из выбранных криптовалют) за указанный промежуток времени."
       parameters:
         - $ref: '#/components/parameters/AnalysTimeLine'
@@ -56,7 +56,7 @@ paths:
       - Portfolio
       summary: "Максимизация прибыли портфеля"
       description: "Максимизировать прибыль портфеля (из выбранных криптовалют) за указанный промежуток времени."
-      operationId: controllers.portfolio.views.calculate_maximization
+      operationId: src.portfolio.views.calculate_maximization
       parameters:
         - $ref: '#/components/parameters/AnalysTimeLine'
         - $ref: '#/components/parameters/CryptoCurrencies'
@@ -190,7 +190,7 @@ components:
   parameters:
     AnalysTimeLine:
       in: query
-      name: analys_time_line
+      name: interval_in_days
       schema:
         type: integer
       required: true
@@ -204,7 +204,7 @@ components:
         type: number
         format: float
       required: true
-      description: "Необходимый уровень."
+      description: "Необходимый уровень доходности при минимизации риска или уровень риска при максимизации риска в процентах."
       example: 5
     
     CryptoCurrencies:
