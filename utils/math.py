@@ -9,6 +9,7 @@ def cal_min_risk(cov_matrix, mean_profit, target_profit):
     def gen_risk(x):
         risk = np.sqrt((cov_matrix.dot(x)).dot(x.T))
         print(f"Risk: {risk}")
+        print("Check the functionality")
         return risk
 
     x0 = num_assets * [1. / num_assets, ]
